@@ -1,103 +1,77 @@
-# Explainable AI
+# Facial Emotion Recognition with CNNs
 
-**Contributors:**
-* Hyeri An
-* Anna Simon
-* Michael Neumayr
-* Johannes S. Fischer
+### Pre-trained Models
 
-### Loading Pre-trained Models
-
-You can choose between two pre-trained models: First, the model trained on RAF-DB model, and second, the model trained on FER+. The models are stored in the relative path ```models``` folder. Below you can find the code which describes how to load each of the models. For each model the respective preprocessing function and emotion labels are given, as well as the name of the last convolutional layer used for visualization.
+You can choose between two pre-trained models: First, the model trained on [RAF-DB](http://whdeng.cn/RAF/model1.html), and second, the model trained on [FER+](https://github.com/microsoft/FERPlus). The models' weights are stored in the `models` folder. We obtained the following results:
 
 |  | RAF-DB model | FER+ model  |
 | :------------- | :------------- | :------------- |
-| Validation Accuracy | $82.99$%   | $84.21$% |
-| Test Accuracy | $82.72$% | $83.77$% |
+| Validation Accuracy | 82.99%   | 84.21% |
+| Test Accuracy | 82.72% | $83.77% |
 
+Below you can find the code which describes how to load and use each of the models.
 
-#### RAF-DB model
+```python
+from model import get_base_model
+from utils import preprocess_fer, get_labels_fer
 
-```py
-from ModelGenerator import get_base_model2
-
-# image shape
-IMG_SHAPE = (100, 100, 3)
-
-# model
-model_name = 'RAF-impr-std_0124-1008_weights.h5'
-model = get_base_model2(IMG_SHAPE)
-model.add(tf.keras.layers.Dense(7, activation='softmax', name="softmax"))
-model.load_weights('./models/' + model_name)
-
-# last convolutional name
-LAST_CONV_NAME = 'block3_conv3'
-
-# preprocessing function for model
-def preprocess(x):
-    mean = [146.6770, 114.6274, 102.3102]
-    std = [67.6282, 61.7651, 61.3665]
-    # ensure image format
-    x = np.array(x, dtype='float32')
-    # normalize
-    x[..., 0] -= mean[0]
-    x[..., 1] -= mean[1]
-    x[..., 2] -= mean[2]
-    if std is not None:
-        x[..., 0] /= std[0]
-        x[..., 1] /= std[1]
-        x[..., 2] /= std[2]
-    return x
-
-emotion_labels = ['surprise', 'fear', 'disgust', 'happiness', 'sadness', 'anger', 'neutral']
+import numpy as np
+import tensorflow as tf
+import cv2
 ```
 
-#### FER+ model
+**1. Build base model**
 
-Model trained on the
-```py
-from ModelGenerator import get_base_model2
+The base model is equal for both pre-trained models.
 
-# image shape
+```python
 IMG_SHAPE = (100, 100, 3)
 
-# model
-model_name = 'FERplus-impr-std_0124-1040_weights.h5'
-model = get_base_model2(IMG_SHAPE)
+model = get_base_model(IMG_SHAPE)
 model.add(tf.keras.layers.Dense(7, activation='softmax', name="softmax"))
-model.load_weights('./models/' + model_name)
-
-# last convolutional name
-LAST_CONV_NAME = 'block3_conv3'
-
-# preprocessing function for model
-def preprocess(x):
-    mean = [129.4432, 129.4432, 129.4432]
-    std = [64.87448751, 64.87448751, 64.87448751]
-    # ensure image format
-    x = np.array(x, dtype='float32')
-    # normalize
-    x[..., 0] -= mean[0]
-    x[..., 1] -= mean[1]
-    x[..., 2] -= mean[2]
-    if std is not None:
-        x[..., 0] /= std[0]
-        x[..., 1] /= std[1]
-        x[..., 2] /= std[2]
-    return x
-
-emotion_labels = ['neutral', 'happiness', 'surprise', 'sadness', 'anger', 'disgust', 'fear']
 ```
+
+**2. Load weights**
+
+Here you have to choose which model you want to take.
+* RAF-DB model: `model_name = RAF_0124-1008_weights.h5`
+* FER+ model: `model_name = FERplus_0124-1040_weights.h5`
+
+```python
+model_name = 'FERplus_0124-1040_weights.h5'   # FER+ example
+model.load_weights('./models/' + model_name)
+```
+
+**3. Apply model**
+
+Load any image of a cropped face, ensure that the shape is (100, 100, 3), preprocess it with the model dependent preprocessing function and feed it into the model. The output is a probability distribution indicating which emotion is most likely.
+
+Example for the FER+ model:
+```python
+# load image
+img = cv2.imread('./data/happy.jpg')
+img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+
+# preprocessing
+x = cv2.resize(img, dsize=IMG_SHAPE[:-1])
+x = np.expand_dims(x, axis=0)
+x = preprocess_fer(x)
+
+output = model.predict(x)
+
+# get results
+label = get_labels_fer(output)[0]
+confidence = np.argmax(output[0])
+
+print("Predicted class '{}' with confidence {:.2f}".format(label, confidence*100))
+```
+
 
 ### Evaluation
 
-The notebook ```Model Evaluation.ipynb``` helps you to evaluate the pre-trained models and visualize the classification results.
+The notebook `Model Evaluation.ipynb` helps you to evaluate the pre-trained models and visualize the classification results.
 
-### Training the Models
+### Training
 
-If you want to train the models by yourself, you need to fill the ```data``` folder with the respective dataset ([FER+](https://github.com/microsoft/FERPlus) or [RAF-DB](http://whdeng.cn/RAF/model1.html)). Then you can have a look at the two jupyter notebooks ```Model FER+.ipynb``` and ```Model RAF.ipynb```, which guide you through the training process.
-
-
-
-----
-If you have further questions or comments feel free to contact us. :)
+If you want to train the models from scratch, you first need to populate the `data` folder with the respective dataset ([FER+](https://github.com/microsoft/FERPlus) or [RAF-DB](http://whdeng.cn/RAF/model1.html)). The two jupyter notebooks `Model FER+.ipynb` and `Model RAF.ipynb` will then guide you through the training process.
