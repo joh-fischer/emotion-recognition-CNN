@@ -7,7 +7,7 @@ You can choose between two pre-trained models: First, the model trained on [RAF-
 |  | RAF-DB model | FER+ model  |
 | :------------- | :------------- | :------------- |
 | Validation Accuracy | 82.99%   | 84.21% |
-| Test Accuracy | 82.72% | $83.77% |
+| Test Accuracy | 82.72% | 83.77% |
 
 Below you can find the code which describes how to load and use each of the models.
 

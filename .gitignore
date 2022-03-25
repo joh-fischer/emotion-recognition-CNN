@@ -1,9 +1,5 @@
-data/ferplus2013/*.jpg
-data/ferplus2013/*.png
-data/ferplus2013/*.jpeg
-data/RAF/*.png
-data/RAF/*.jpg
-data/RAF/*.jpeg
+data/ferplus2013/images
+data/RAF/images
 
 *__pycache__/
 .ipynb_checkpoints
