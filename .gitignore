@@ -1,6 +1,7 @@
 data/ferplus2013/images
 data/RAF/images
-
+*distribution_basic.txt
+*labels.txt
 *__pycache__/
 .ipynb_checkpoints
 *.csv
